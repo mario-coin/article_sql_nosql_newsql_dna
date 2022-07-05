@@ -1,0 +1,1 @@
+CREATE INDEX sequence_hash ON sequence(sequenceNumber, nucleotides) USING HASH;

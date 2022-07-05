@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS sequence_hash ON sequence (sequenceId, nucleotides);

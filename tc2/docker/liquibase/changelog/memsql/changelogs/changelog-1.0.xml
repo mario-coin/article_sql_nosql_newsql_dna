@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
+    
+    <changeSet id="creating table project" author="mario.coin">
+        <sqlFile
+            encoding="UTF-8"
+            endDelimiter="\nGO"
+            path="1.0/1_create_table_project.sql"
+            relativeToChangelogFile="true"
+            splitStatements="true"
+            stripComments="true"/>
+    </changeSet>
+    
+    <changeSet id="creating table geneticCode" author="mario.coin">
+        <sqlFile
+            encoding="UTF-8"
+            endDelimiter="\nGO"
+            path="1.0/2_create_table_geneticCode.sql"
+            relativeToChangelogFile="true"
+            splitStatements="true"
+            stripComments="true"/>
+    </changeSet>
+    
+    <changeSet id="creating table region" author="mario.coin">
+        <sqlFile
+            encoding="UTF-8"
+            endDelimiter="\nGO"
+            path="1.0/3_create_table_region.sql"
+            relativeToChangelogFile="true"
+            splitStatements="true"
+            stripComments="true"/>
+    </changeSet>
+    
+    <changeSet id="creating table sequence" author="mario.coin">
+        <sqlFile
+            encoding="UTF-8"
+            endDelimiter="\nGO"
+            path="1.0/4_create_table_sequence.sql"
+            relativeToChangelogFile="true"
+            splitStatements="true"
+            stripComments="true"/>
+    </changeSet>
+    
+    <changeSet id="creating index sequence" author="mario.coin">
+        <sqlFile
+            encoding="UTF-8"
+            endDelimiter="\nGO"
+            path="1.0/5_create_index_sequence.sql"
+            relativeToChangelogFile="true"
+            splitStatements="true"
+            stripComments="true"/>
+    </changeSet>
+    
+</databaseChangeLog>

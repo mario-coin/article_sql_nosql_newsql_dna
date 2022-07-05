@@ -1,0 +1,126 @@
+version: '3.1'
+
+services:
+    mysql:
+      image: mysql:8
+      ports:
+        - 3306:3306
+      restart: always
+      environment:
+        MYSQL_ROOT_PASSWORD: root
+      volumes:
+        - mysql-data:/var/lib/mysql
+      healthcheck:
+        test: "mysql -uroot -p$$MYSQL_ROOT_PASSWORD -hlocalhost -e'CREATE DATABASE IF NOT EXISTS seq_gen_fasta'"
+        interval: 10s
+        timeout: 5s
+        retries: 10
+        start_period: 5s
+    postgresql:
+      image: postgres:13.2
+      ports:
+        - "5432:5432"
+      environment:
+        POSTGRES_PASSWORD: root
+      volumes:
+        - postgresql-data:/var/lib/postgresql/data
+      healthcheck:
+        test: "echo \"SELECT 'CREATE DATABASE seq_gen_fasta' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'seq_gen_fasta')\\gexec\" | psql -U postgres -h localhost"
+        interval: 10s
+        timeout: 5s
+        retries: 10
+        start_period: 5s
+    mongo:
+      image: mongo:5
+      ports:
+        - "27017:27017"
+      environment:
+        MONGO_INITDB_ROOT_USERNAME: root
+        MONGO_INITDB_ROOT_PASSWORD: root
+      volumes:
+        - mongo-data:/data/db
+        - mongo-data:/data/configdb
+    hbase:
+      image: dajobe/hbase
+      ports:
+        - "16000:16000"
+        - "16030:16030"
+        - "16020:16020"
+        - "16010:16010"
+        - "2181:2181"
+        - "60010:60010"
+        - "60030:60030"
+        - "8080:8080"
+        - "8085:8085"
+        - "9090:9090"
+        - "9095:9095"
+      restart: always
+      environment:
+        HBASE_DOCKER_HOSTNAME: hbase-docker
+      hostname: hbase-docker
+      volumes:
+        - hbase-data:/data
+    memsql:
+      image: memsql/cluster-in-a-box:alma-7.8.2-8c7b918527-4.0.5-1.13.6
+      ports:
+        - "3307:3306"
+        - "8081:8080"
+      environment:
+        - LICENSE_KEY=BDIyNDIzZWU3M2UxMTQwMWJhZDhlMTQ5NGIwOWRlYTBjAAAAAAAAAAAEAAAAAAAAACgwNQIZAKNm6HBVIYXIfYcwFcQel4qPKpEIqs/6OAIYIFEr0TCYcOm1Qx+2jUulNCEs1V1VTgbrAA==
+        - ROOT_PASSWORD=oR{KD*Z]YA**^c<K<~uv
+        - START_AFTER_INIT=Y
+      volumes:
+        - memsql-data:/var/lib/memsql
+      healthcheck:
+        test: "memsql -p\"$$ROOT_PASSWORD\" -e'CREATE DATABASE IF NOT EXISTS seq_gen_fasta'"
+        interval: 10s
+        timeout: 5s
+        retries: 10
+        start_period: 5s
+    cockroachdb:
+      image: cockroachdb/cockroach:v22.1.0
+      ports:
+        - "26257:26257"
+        - "8082:8080"
+      volumes:
+        - cockroachdb-data:/cockroach/cockroach-data
+      command: start-single-node --insecure
+      healthcheck:
+        test: ./cockroach sql --insecure -e 'CREATE DATABASE IF NOT EXISTS seq_gen_fasta'
+        interval: 10s
+        timeout: 5s
+        retries: 10
+        start_period: 5s
+    liquibase: 
+      image: liquibase/liquibase:4.10
+      environment:
+        INSTALL_MYSQL: 'true'
+      depends_on:
+        mysql:
+          condition: service_healthy
+        postgresql:
+          condition: service_healthy
+        memsql:
+          condition: service_healthy
+        cockroachdb:
+          condition: service_healthy
+      volumes:
+        - liquibase-data:/liquibase/changelog/
+        - ./liquibase/changelog/mysql/:/liquibase/changelog/mysql/
+        - ./liquibase/changelog/postgresql/:/liquibase/changelog/postgresql/
+        - ./liquibase/changelog/memsql/:/liquibase/changelog/memsql/
+        - ./liquibase/changelog/cockroachdb/:/liquibase/changelog/cockroachdb/
+      command: bash -c "
+        liquibase --defaultsFile=/liquibase/changelog/mysql/liquibase.properties --log-level=WARNING update
+        && liquibase --defaultsFile=/liquibase/changelog/postgresql/liquibase.properties --log-level=WARNING update
+        && liquibase --defaultsFile=/liquibase/changelog/memsql/liquibase.properties --log-level=WARNING update
+        && liquibase --defaultsFile=/liquibase/changelog/cockroachdb/liquibase.properties --log-level=WARNING update"
+
+volumes:
+  mysql-data:
+  postgresql-data:
+  mongo-data:
+  hbase-data:
+  memsql-data:
+  cockroachdb-data:
+  liquibase-data:
